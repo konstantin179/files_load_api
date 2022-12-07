@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+
+
+  files_load_api:
+    container_name: files_load_api
+    build: .
+    environment:
+      TZ: Europe/Moscow
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+      PG_DB: ${PG_DB}
+      PG_HOST: ${PG_HOST}
+      PG_PORT: ${PG_PORT}
+      SSLMODE: ${SSLMODE}
+      TARGET_SESSION_ATTRS: ${TARGET_SESSION_ATTRS}
+# Need to add volumes?
+
+
+  nginx:
+    container_name: nginx_files_load_api
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    depends_on:
+      - files_load_api
+    restart: always
+    environment:
+      - "TZ=Europe/Moscow"
+    ports:
+      - 8083:80
+      - 4434:443
+      - 5053:5000
+# Need to change ports?
+# Need to add volumes?
