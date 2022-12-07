@@ -2,6 +2,7 @@ import os
 from flask import Flask, request, abort, send_file, jsonify
 from werkzeug.utils import secure_filename
 from postgres import DB, db_connection_string
+from pathlib import Path
 
 FILES_FOLDER = './files'
 TEMPLATES_FOLDER = './templates'
@@ -159,6 +160,8 @@ def upload_client_file(filename):
         required: false
         description: Name of file group."""
     client_id = request.args.get('client_id', type=int)
+    if client_id is None:
+        abort(400, "Invalid request missing required parameter client_id")
     file_group = request.args.get('file_group', default="Прочее", type=str)
     # Check if the post request has the file data
     if not request.data:
@@ -166,6 +169,8 @@ def upload_client_file(filename):
     if not allowed_file(filename):
         abort(400, f"Bad file extension. Allowed extensions: {', '.join(ALLOWED_EXTENSIONS)}.")
     filename = secure_filename(filename)
+    file_path = os.path.join(CLIENT_FILES_FOLDER, str(client_id), filename)
+    Path(file_path).mkdir(parents=True, exist_ok=True)
     file_path = os.path.join(CLIENT_FILES_FOLDER, filename)
     file_path = unique_file_path(file_path)
     filename = os.path.basename(file_path)
