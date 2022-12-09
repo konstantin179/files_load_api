@@ -1,4 +1,5 @@
 import os
+import logging
 from flask import Flask, request, abort, send_file, jsonify
 from werkzeug.utils import secure_filename
 from postgres import DB, db_connection_string
@@ -10,6 +11,15 @@ CLIENT_FILES_FOLDER = './files_storage/clients_files'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv', 'txt'}
 
 app = Flask(__name__)
+
+# Add file handler to app.logger
+fh = logging.FileHandler(filename='files_load_api.log')
+fh.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(module)s - %(funcName)s - %(message)s')
+fh.setFormatter(formatter)
+app.logger.addHandler(fh)
+
+app.logger.setLevel(logging.INFO)
 
 
 @app.errorhandler(400)
@@ -61,12 +71,15 @@ def upload_file(filename):
         description: Name of file group"""
     client_id = request.args.get('client_id', type=int)
     if client_id is None:
+        app.logger.warning("400 Invalid request missing required parameter client_id")
         abort(400, description="Invalid request missing required parameter client_id")
     file_group = request.args.get('file_group', default="Прочее", type=str)
     # Check if the post request has the file data
     if not request.data:
-        abort(400, description="No data was sent.")
+        app.logger.warning("400 No data was sent.")
+        abort(400, description=f"400 Client_id {client_id} - {filename} - No data was sent.")
     if not allowed_file(filename):
+        app.logger.warning(f"400 Client_id {client_id} - {filename} - Bad file extension.")
         abort(400, description=f"Bad file extension. Allowed extensions: {', '.join(ALLOWED_EXTENSIONS)}.")
     filename = secure_filename(filename)
     client_dir_path = os.path.join(FILES_FOLDER, str(client_id))
@@ -78,6 +91,7 @@ def upload_file(filename):
         f.write(request.data)
     with DB(db_connection_string) as db:
         db.insert_file_info_into_files_table(filename, client_id, file_group, file_path)
+    app.logger.info(f"201 Client_id {client_id} - File: {filename} successfully saved.")
     return jsonify(message=f"File: {filename} successfully saved."), 201
 
 
@@ -92,9 +106,11 @@ def get_files_list():
             required: true"""
     client_id = request.args.get('client_id', type=int)
     if client_id is None:
+        app.logger.warning("400 Invalid request missing required parameter client_id")
         abort(400, description="Invalid request missing required parameter client_id")
     with DB(db_connection_string) as db:
         files = db.get_list_of_files(client_id)
+    app.logger.info(f"200 Client_id {client_id} - Files info list was sent.")
     return jsonify(files)
 
 
@@ -110,7 +126,9 @@ def download_file(file_id):
     with DB(db_connection_string) as db:
         file_path = db.get_file_path_from_files_table(file_id)
     if not file_path:
+        app.logger.warning(f"404 File with id {file_id} does not exist.")
         abort(404, description=f"File with id {file_id} does not exist.")
+    app.logger.info(f"200 File with id {file_id} was sent.")
     return send_file(file_path)
 
 
@@ -134,17 +152,21 @@ def upload_template(filename):
     file_group = request.args.get('file_group', default="Прочее", type=str)
     # Check if the post request has the file data
     if not request.data:
+        app.logger.warning("400 No data was sent.")
         abort(400, description="No data was sent.")
     if not allowed_file(filename):
+        app.logger.warning(f"400 Filename: {filename} - Bad file extension.")
         abort(400, description=f"Bad file extension. Allowed extensions: {', '.join(ALLOWED_EXTENSIONS)}.")
     filename = secure_filename(filename)
     file_path = os.path.join(TEMPLATES_FOLDER, filename)
     if os.path.isfile(file_path):
+        app.logger.warning(f"400 Template {filename} already exists.")
         abort(400, description=f"Template {filename} already exists.")
     with open(file_path, "wb") as f:
         f.write(request.data)
     with DB(db_connection_string) as db:
         db.insert_file_info_into_templates_table(filename, file_group, file_path)
+    app.logger.info(f"Template: {filename} successfully saved.")
     return jsonify(message=f"Template: {filename} successfully saved."), 201
 
 
@@ -153,6 +175,7 @@ def get_templates_list():
     """Return list of dictionaries with info about available templates."""
     with DB(db_connection_string) as db:
         files = db.get_list_of_templates()
+    app.logger.info(f"200 Templates info list was sent.")
     return jsonify(files)
 
 
@@ -168,7 +191,9 @@ def download_template(file_id):
     with DB(db_connection_string) as db:
         file_path = db.get_file_path_from_templates_table(file_id)
     if not file_path:
+        app.logger.warning(f"404 Template with id {file_id} does not exist.")
         abort(404, description=f"Template with id {file_id} does not exist.")
+    app.logger.info(f"200 File with id {file_id} was sent.")
     return send_file(file_path)
 
 
@@ -196,12 +221,15 @@ def upload_client_file(filename):
         description: Name of file group"""
     client_id = request.args.get('client_id', type=int)
     if client_id is None:
+        app.logger.warning("400 Invalid request missing required parameter client_id")
         abort(400, description="Invalid request missing required parameter client_id")
     file_group = request.args.get('file_group', default="Прочее", type=str)
     # Check if the post request has the file data
     if not request.data:
+        app.logger.warning("400 No data was sent.")
         abort(400, description="No data was sent.")
     if not allowed_file(filename):
+        app.logger.warning(f"400 Client_id {client_id} - {filename} - Bad file extension.")
         abort(400, description=f"Bad file extension. Allowed extensions: {', '.join(ALLOWED_EXTENSIONS)}.")
     filename = secure_filename(filename)
     client_dir_path = os.path.join(CLIENT_FILES_FOLDER, str(client_id))
@@ -213,6 +241,7 @@ def upload_client_file(filename):
         f.write(request.data)
     with DB(db_connection_string) as db:
         db.insert_file_info_into_client_files_table(filename, client_id, file_group, file_path)
+    app.logger.info(f"201 Client_id {client_id} - Client file: {filename} successfully saved.")
     return jsonify(message=f"Client file: {filename} successfully saved."), 201
 
 
@@ -227,9 +256,11 @@ def get_client_files_list():
         required: true"""
     client_id = request.args.get('client_id', type=int)
     if client_id is None:
+        app.logger.warning("400 Invalid request missing required parameter client_id")
         abort(400, description="Invalid request missing required parameter client_id")
     with DB(db_connection_string) as db:
         files = db.get_list_of_client_files(client_id)
+    app.logger.info(f"200 Client_id {client_id} - Client files info list was sent.")
     return jsonify(files)
 
 
@@ -246,7 +277,9 @@ def download_client_file(file_id):
     with DB(db_connection_string) as db:
         file_path = db.get_file_path_from_client_files_table(file_id)
     if not file_path:
+        app.logger.warning(f"404 File with id {file_id} does not exist.")
         abort(404, description=f"Client file with id {file_id} does not exist.")
+    app.logger.info(f"200 File with id {file_id} was sent.")
     return send_file(file_path)
 
 
