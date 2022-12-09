@@ -13,7 +13,7 @@ RUN mkdir -p ~/.postgresql && \
     chmod 0600 ~/.postgresql/root.crt
 
 # Create db tables and files folders.
-RUN python3 postgresql.py
+RUN python3 postgres.py
 
 EXPOSE 5000
 
