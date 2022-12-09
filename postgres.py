@@ -5,13 +5,14 @@ import os
 from pathlib import Path
 
 
-db_connection_string = f"""host={os.getenv('PG_HOST')}
-    port={os.getenv('PG_PORT')}
-    sslmode={os.getenv('SSLMODE')}
-    dbname={os.getenv('PG_DB')}
-    user={os.getenv('PG_USER')}
-    password={os.getenv('PG_PASSWORD')}
-    target_session_attrs={os.getenv('TARGET_SESSION_ATTRS')}"""
+# db_connection_string = f"""host={os.getenv('PG_HOST')}
+#     port={os.getenv('PG_PORT')}
+#     sslmode={os.getenv('SSLMODE')}
+#     dbname={os.getenv('PG_DB')}
+#     user={os.getenv('PG_USER')}
+#     password={os.getenv('PG_PASSWORD')}
+#     target_session_attrs={os.getenv('TARGET_SESSION_ATTRS')}"""
+db_connection_string = "dbname=mydb user=myname password=12345mytestpsw host=localhost"
 
 
 class DB:
@@ -47,12 +48,13 @@ class DB:
         except (Exception, psycopg2.Error) as error:
             print("PostgreSQL error:", error)
 
-    def get_list_of_files(self):
+    def get_list_of_files(self, client_id):
         files = []
         try:
             dict_cursor = self.connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-            dict_cursor.execute("""SELECT filename, client_id, creation_date, file_group, file_id
-                                     FROM files;""")
+            dict_cursor.execute(f"""SELECT filename, client_id, creation_date, file_group, file_id
+                                     FROM files
+                                    WHERE client_id = {client_id};""")
             files = dict_cursor.fetchall()
             dict_cursor.close()
         except (Exception, psycopg2.Error) as error:
@@ -201,9 +203,9 @@ class DB:
 
 if __name__ == "__main__":
     # Create dirs and db tables if they do not exist
-    Path("./files").mkdir(parents=True, exist_ok=True)
-    Path("./templates").mkdir(parents=True, exist_ok=True)
-    Path("./clients_files").mkdir(parents=True, exist_ok=True)
+    Path("./files_storage/files").mkdir(parents=True, exist_ok=True)
+    Path("./files_storage/templates").mkdir(parents=True, exist_ok=True)
+    Path("./files_storage/clients_files").mkdir(parents=True, exist_ok=True)
     with DB(db_connection_string) as db:
         db.create_files_table()
         db.create_templates_table()
