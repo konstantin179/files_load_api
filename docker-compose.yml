@@ -15,7 +15,8 @@ services:
       PG_PORT: ${PG_PORT}
       SSLMODE: ${SSLMODE}
       TARGET_SESSION_ATTRS: ${TARGET_SESSION_ATTRS}
-# Need to add volumes?
+    volumes:
+      - files_storage:/app/files_storage
 
 
   nginx:
@@ -33,4 +34,7 @@ services:
       - 4434:443
       - 5053:5000
 # Need to change ports?
-# Need to add volumes?
+
+
+volumes:
+  files_storage:
