@@ -6,6 +6,7 @@ services:
   files_load_api:
     container_name: files_load_api
     build: .
+    restart: always
     environment:
       TZ: Europe/Moscow
       PG_USER: ${PG_USER}
