@@ -32,9 +32,4 @@ services:
     ports:
       - 8083:80
       - 4434:443
-      - 5053:5000
-# Need to change ports?
-
-
-volumes:
-  files_storage:
+      - 5052:5000
