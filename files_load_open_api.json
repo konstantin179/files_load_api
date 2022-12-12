@@ -1,0 +1,560 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Files load API - OpenAPI 3.0",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000"
+    }
+  ],
+  "tags": [
+    {
+      "name": "client_report_files",
+      "description": "Operations with files for clients"
+    },
+    {
+      "name": "templates",
+      "description": "Operations with templates"
+    },
+    {
+      "name": "client_files",
+      "description": "Operations with files created by clients"
+    }
+  ],
+  "paths": {
+    "/client_report_files/{filename}": {
+      "post": {
+        "tags": [
+          "client_report_files"
+        ],
+        "summary": "Add a new file to the client_report_files folder",
+        "description": "Add a new file to the client_report_files folder. You need to put the binary string with the file in the request body.",
+        "operationId": "postFileToClientReportFiles",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Filename with available file extensions: 'xlsx', 'xls', 'csv', 'txt'."
+          },
+          {
+            "name": "client_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true
+          },
+          {
+            "name": "file_group",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "Прочее"
+            },
+            "required": false,
+            "description": "Name of file group"
+          }
+        ],
+        "requestBody": {
+          "description": "Binary file",
+          "required": true,
+          "content": {
+            "text/csv": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/client_report_files": {
+      "get": {
+        "tags": [
+          "client_report_files"
+        ],
+        "summary": "List of dictionaries with saved client report files info",
+        "description": "Get list of dictionaries with info about saved files for client.",
+        "operationId": "getClientReportFilesList",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseFilesList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/client_report_files/{file_id}": {
+      "get": {
+        "tags": [
+          "client_report_files"
+        ],
+        "summary": "Download file",
+        "description": "Download the file by file_id.",
+        "operationId": "downloadFile",
+        "parameters": [
+          {
+            "name": "file_id",
+            "in": "path",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/templates/{filename}": {
+      "post": {
+        "tags": [
+          "templates"
+        ],
+        "summary": "Add a new template file to the templates folder",
+        "description": "Add a new template file to the templates folder. You need to put the binary string with the file in the request body.",
+        "operationId": "postFileToTemplates",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Filename with available file extensions: 'xlsx', 'xls', 'csv', 'txt'."
+          },
+          {
+            "name": "file_group",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "Прочее"
+            },
+            "required": false,
+            "description": "Name of file group"
+          }
+        ],
+        "requestBody": {
+          "description": "Binary file",
+          "required": true,
+          "content": {
+            "text/csv": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/templates": {
+      "get": {
+        "tags": [
+          "templates"
+        ],
+        "summary": "List of dictionaries with saved templates info",
+        "description": "Get list of dictionaries with info about available templates.",
+        "operationId": "getTemplatesList",
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseTemplatesList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/templates/{file_id}": {
+      "get": {
+        "tags": [
+          "templates"
+        ],
+        "summary": "Download template",
+        "description": "Download the template by file_id.",
+        "operationId": "downloadTemplate",
+        "parameters": [
+          {
+            "name": "file_id",
+            "in": "path",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/client_files/{filename}": {
+      "post": {
+        "tags": [
+          "client_files"
+        ],
+        "summary": "Add a new client file to the client_files folder",
+        "description": "Add a new client file to the client_files folder. You need to put the binary string with the file in the request body.",
+        "operationId": "postFileToClientFiles",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Filename with available file extensions: 'xlsx', 'xls', 'csv', 'txt'."
+          },
+          {
+            "name": "client_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true
+          },
+          {
+            "name": "file_group",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "Прочее"
+            },
+            "required": false,
+            "description": "Name of file group"
+          }
+        ],
+        "requestBody": {
+          "description": "Binary file",
+          "required": true,
+          "content": {
+            "text/csv": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/client_files": {
+      "get": {
+        "tags": [
+          "client_files"
+        ],
+        "summary": "List of dictionaries with saved client files info",
+        "description": "Get list of dictionaries with info about saved client files.",
+        "operationId": "getClientFilesList",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseFilesList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/client_files/{file_id}": {
+      "get": {
+        "tags": [
+          "client_files"
+        ],
+        "summary": "Download client file",
+        "description": "Download the client file by file_id.",
+        "operationId": "downloadClientFile",
+        "parameters": [
+          {
+            "name": "file_id",
+            "in": "path",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ResponseTemplatesList": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "filename": {
+              "type": "string",
+              "example": "file.xlsx"
+            },
+            "file_group": {
+              "type": "string",
+              "example": "Прочее"
+            },
+            "file_id": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        }
+      },
+      "ResponseFilesList": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "filename": {
+              "type": "string",
+              "example": "file.xlsx"
+            },
+            "client_id": {
+              "type": "integer",
+              "example": 1
+            },
+            "creation_date": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "file_group": {
+              "type": "string",
+              "example": "Прочее"
+            },
+            "file_id": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        }
+      },
+      "ResponseSuccess": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Successful operation"
+          }
+        },
+        "xml": {
+          "name": "response_success"
+        }
+      },
+      "ResponseError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Error message"
+          }
+        },
+        "xml": {
+          "name": "response_error"
+        }
+      }
+    }
+  }
+}
