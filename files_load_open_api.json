@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:5000"
+      "url": "http://62.84.124.35:5052/"
     }
   ],
   "tags": [
