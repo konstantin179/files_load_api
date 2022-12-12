@@ -17,7 +17,7 @@ services:
       SSLMODE: ${SSLMODE}
       TARGET_SESSION_ATTRS: ${TARGET_SESSION_ATTRS}
     volumes:
-      - files_storage:/app/files_storage
+      - ./files_storage:/app/files_storage
 
 
   nginx:
