@@ -49,11 +49,11 @@ class DB:
     def __enter__(self):
         return self
 
-    def create_files_table(self):
-        """Create table in db for files info."""
+    def create_client_report_files_table(self):
+        """Create table in db for client_report_files info."""
         try:
             cursor = self.connection.cursor()
-            cursor.execute("""CREATE TABLE IF NOT EXISTS files (
+            cursor.execute("""CREATE TABLE IF NOT EXISTS client_report_files (
                                      file_id SERIAL PRIMARY KEY,
                                      filename VARCHAR,
                                      client_id INT,
@@ -65,12 +65,12 @@ class DB:
         except (Exception, psycopg2.Error) as error:
             logger.critical(repr(error))
 
-    def get_list_of_files(self, client_id):
+    def get_list_of_client_report_files(self, client_id):
         files = []
         try:
             dict_cursor = self.connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             dict_cursor.execute(f"""SELECT filename, client_id, creation_date, file_group, file_id
-                                     FROM files
+                                     FROM client_report_files
                                     WHERE client_id = {client_id};""")
             files = dict_cursor.fetchall()
             dict_cursor.close()
@@ -78,22 +78,22 @@ class DB:
             logger.error(repr(error))
         return files
 
-    def insert_file_info_into_files_table(self, filename, client_id, file_group, file_path):
+    def insert_file_info_into_client_report_files_table(self, filename, client_id, file_group, file_path):
         try:
             cursor = self.connection.cursor()
-            cursor.execute("""INSERT INTO files (filename, client_id, file_group, file_path)
+            cursor.execute("""INSERT INTO client_report_files (filename, client_id, file_group, file_path)
                               VALUES (%s, %s, %s, %s);""", (filename, client_id, file_group, file_path))
             self.connection.commit()
             cursor.close()
         except (Exception, psycopg2.Error) as error:
             logger.error(repr(error))
 
-    def get_file_path_from_files_table(self, file_id):
+    def get_file_path_from_client_report_files_table(self, file_id):
         file_path = ""
         try:
             cursor = self.connection.cursor()
             query = f"""SELECT file_path
-                                  FROM files
+                                  FROM client_report_files
                                  WHERE file_id = {file_id};"""
             cursor.execute(query)
             file_path = cursor.fetchone()[0]
@@ -106,7 +106,7 @@ class DB:
         """Create table in db for templates info."""
         try:
             cursor = self.connection.cursor()
-            cursor.execute("""CREATE TABLE IF NOT EXISTS templates (
+            cursor.execute("""CREATE TABLE IF NOT EXISTS file_templates (
                                      file_id SERIAL PRIMARY KEY,
                                      filename VARCHAR,
                                      creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -120,7 +120,7 @@ class DB:
     def insert_file_info_into_templates_table(self, filename, file_group, file_path):
         try:
             cursor = self.connection.cursor()
-            cursor.execute("""INSERT INTO templates (filename, file_group, file_path)
+            cursor.execute("""INSERT INTO file_templates (filename, file_group, file_path)
                               VALUES (%s, %s, %s);""", (filename, file_group, file_path))
             self.connection.commit()
             cursor.close()
@@ -132,7 +132,7 @@ class DB:
         try:
             dict_cursor = self.connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             dict_cursor.execute("""SELECT filename, file_group, file_id
-                                     FROM templates;""")
+                                     FROM file_templates;""")
             files = dict_cursor.fetchall()
             dict_cursor.close()
         except (Exception, psycopg2.Error) as error:
@@ -144,7 +144,7 @@ class DB:
         try:
             cursor = self.connection.cursor()
             query = f"""SELECT file_path
-                          FROM templates
+                          FROM file_templates
                          WHERE file_id = {file_id};"""
             cursor.execute(query)
             file_path = cursor.fetchone()[0]
@@ -220,10 +220,15 @@ class DB:
 
 if __name__ == "__main__":
     # Create dirs and db tables if they do not exist
-    Path("./files_storage/files").mkdir(parents=True, exist_ok=True)
-    Path("./files_storage/templates").mkdir(parents=True, exist_ok=True)
+    Path("./files_storage/client_report_files").mkdir(parents=True, exist_ok=True)
+    Path("./files_storage/file_templates").mkdir(parents=True, exist_ok=True)
     Path("./files_storage/clients_files").mkdir(parents=True, exist_ok=True)
     with DB(db_connection_string) as db:
-        db.create_files_table()
-        db.create_templates_table()
-        db.create_client_files_table()
+        # db.create_client_report_files_table()
+        # db.create_templates_table()
+        # db.create_client_files_table()
+        conn = db.connect()
+        cur = conn.cursor()
+        cur.execute('SELECT version()')
+        print(cur.fetchone())
+        cur.close()

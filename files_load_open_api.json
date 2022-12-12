@@ -11,7 +11,7 @@
   ],
   "tags": [
     {
-      "name": "files",
+      "name": "client_report_files",
       "description": "Operations with files for clients"
     },
     {
@@ -24,14 +24,14 @@
     }
   ],
   "paths": {
-    "/files/{filename}": {
+    "/client_report_files/{filename}": {
       "post": {
         "tags": [
-          "files"
+          "client_report_files"
         ],
-        "summary": "Add a new file to the files folder",
-        "description": "Add a new file to the files folder. You need to put the binary string with the file in the request body.",
-        "operationId": "postFileToFiles",
+        "summary": "Add a new file to the client_report_files folder",
+        "description": "Add a new file to the client_report_files folder. You need to put the binary string with the file in the request body.",
+        "operationId": "postFileToClientReportFiles",
         "parameters": [
           {
             "name": "filename",
@@ -97,14 +97,14 @@
         }
       }
     },
-    "/files": {
+    "/client_report_files": {
       "get": {
         "tags": [
-          "files"
+          "client_report_files"
         ],
-        "summary": "List of dictionaries with saved files info",
+        "summary": "List of dictionaries with saved client report files info",
         "description": "Get list of dictionaries with info about saved files for client.",
-        "operationId": "getFilesList",
+        "operationId": "getClientReportFilesList",
         "parameters": [
           {
             "name": "client_id",
@@ -139,10 +139,10 @@
         }
       }
     },
-    "/files/{file_id}": {
+    "/client_report_files/{file_id}": {
       "get": {
         "tags": [
-          "files"
+          "client_report_files"
         ],
         "summary": "Download file",
         "description": "Download the file by file_id.",
