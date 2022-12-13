@@ -18,7 +18,7 @@ services:
       TARGET_SESSION_ATTRS: ${TARGET_SESSION_ATTRS}
     volumes:
       - type: volume
-        source: files_load_api
+        name: files_load_api
         target: /app/files_storage 
      # - ./files_storage:/app/files_storage
 
