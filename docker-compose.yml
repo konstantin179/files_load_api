@@ -17,10 +17,7 @@ services:
       SSLMODE: ${SSLMODE}
       TARGET_SESSION_ATTRS: ${TARGET_SESSION_ATTRS}
     volumes:
-      - type: volume
-        name: files_load_api
-        target: /app/files_storage 
-     # - ./files_storage:/app/files_storage
+      - /home/get/files-api:/app/files_storage
 
 
   nginx:
