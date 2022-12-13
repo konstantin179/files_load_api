@@ -2,7 +2,7 @@ FROM python:3.9
 
 WORKDIR ./app
 COPY . .
-
+RUN chmod 775 script.sh
 RUN pip install --upgrade pip && pip install --no-cache-dir --upgrade -r requirements.txt
 
 # Download db certificate
