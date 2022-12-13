@@ -6,6 +6,14 @@ import logging
 from pathlib import Path
 
 
+db_connection_string = f"""host={os.getenv('PG_HOST')}
+        port={os.getenv('PG_PORT')}
+        sslmode={os.getenv('SSLMODE')}
+        dbname={os.getenv('PG_DB')}
+        user={os.getenv('PG_USER')}
+        password={os.getenv('PG_PASSWORD')}
+        target_session_attrs={os.getenv('TARGET_SESSION_ATTRS')}"""
+
 # create logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -22,14 +30,6 @@ sh.setFormatter(formatter)
 # add fh and sh to logger
 logger.addHandler(fh)
 logger.addHandler(sh)
-
-db_connection_string = f"""host={os.getenv('PG_HOST')}
-    port={os.getenv('PG_PORT')}
-    sslmode={os.getenv('SSLMODE')}
-    dbname={os.getenv('PG_DB')}
-    user={os.getenv('PG_USER')}
-    password={os.getenv('PG_PASSWORD')}
-    target_session_attrs={os.getenv('TARGET_SESSION_ATTRS')}"""
 
 
 class DB:
