@@ -18,8 +18,8 @@ services:
       TARGET_SESSION_ATTRS: ${TARGET_SESSION_ATTRS}
     volumes:
       - /home/get/files-api:/app/files_storage
-
-
+    command: sh script.sh
+ 
   nginx:
     container_name: nginx_files_load_api
     build:
