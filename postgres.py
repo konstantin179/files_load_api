@@ -6,13 +6,14 @@ import logging
 from pathlib import Path
 
 
-db_connection_string = f"""host={os.getenv('PG_HOST')}
-        port={os.getenv('PG_PORT')}
-        sslmode={os.getenv('SSLMODE')}
-        dbname={os.getenv('PG_DB')}
-        user={os.getenv('PG_USER')}
-        password={os.getenv('PG_PASSWORD')}
-        target_session_attrs={os.getenv('TARGET_SESSION_ATTRS')}"""
+db_connection_string = "dbname=mydb user=myname password=12345mytestpsw host=localhost"
+# db_connection_string = f"""host={os.getenv('PG_HOST')}
+#         port={os.getenv('PG_PORT')}
+#         sslmode={os.getenv('SSLMODE')}
+#         dbname={os.getenv('PG_DB')}
+#         user={os.getenv('PG_USER')}
+#         password={os.getenv('PG_PASSWORD')}
+#         target_session_attrs={os.getenv('TARGET_SESSION_ATTRS')}"""
 
 # create logger
 logger = logging.getLogger(__name__)
@@ -205,6 +206,15 @@ class DB:
         except (Exception, psycopg2.Error) as error:
             logger.error(repr(error))
         return file_path
+
+    def delete_from_table(self, table_name, file_id):
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(f"DELETE FROM {table_name} WHERE file_id = {file_id};")
+            self.connection.commit()
+            cursor.close()
+        except (Exception, psycopg2.Error) as error:
+            logger.error(repr(error))
 
     def close(self):
         if self.connection:
