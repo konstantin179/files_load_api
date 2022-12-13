@@ -15,6 +15,7 @@ deploy:
     - ${TAG_NAME}
   script:
     - docker compose down
-   # #- docker rmi ecomlab_frontend-lkt-app
+    - docker rmi files_load_api-files_load_api
+    - docker rmi files_load_api-nginx
     - docker compose up -d
     
