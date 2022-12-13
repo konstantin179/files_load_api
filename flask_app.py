@@ -117,22 +117,49 @@ def get_client_report_files_list():
     return jsonify(files)
 
 
-@app.route('/client_report_files/<file_id>')
-def download_file(file_id):
-    """Download the file by file_id.
-    parameters:
-      - name: file_id
-        in: path
-        schema:
-          type: integer
-        required: true"""
+@app.route('/client_report_files/<file_id>', methods=['GET', 'DELETE'])
+def download_or_delete_client_report_file(file_id):
+    """Download or delete the client report file by file_id.
+      get:
+        parameters:
+          - name: file_id
+            in: path
+            schema:
+              type: integer
+            required: true
+      delete:
+        parameters:
+          - name: file_id
+            in: path
+            schema:
+              type: integer
+            required: true
+          - name: secret_key
+            in: query
+            schema:
+              type: string
+            required: true"""
     with DB(db_connection_string) as db:
         file_path = db.get_file_path_from_client_report_files_table(file_id)
-    if not file_path:
-        app.logger.warning(f"404 File with id {file_id} does not exist.")
-        abort(404, description=f"File with id {file_id} does not exist.")
-    app.logger.info(f"200 File with id {file_id} was sent.")
-    return send_file(file_path)
+    if request.method == 'GET':
+        if not file_path:
+            app.logger.warning(f"404 File with id {file_id} does not exist.")
+            abort(404, description=f"File with id {file_id} does not exist.")
+        app.logger.info(f"200 File with id {file_id} was sent.")
+        return send_file(file_path)
+    if request.method == 'DELETE':
+        secret_key = request.args.get('secret_key', type=str)
+        if secret_key == os.getenv("DELETE_KEY"):
+            if not file_path:
+                app.logger.info(f"File with id {file_id} is already deleted.")
+                return jsonify(message=f"File with id {file_id} is already deleted."), 200
+            os.remove(file_path)
+            with DB(db_connection_string) as db:
+                db.delete_from_table('client_report_files', file_id)
+            return jsonify(message=f"File with id {file_id} was deleted."), 200
+        else:
+            app.logger.warning("400 Invalid request missing required parameter secret_key")
+            abort(400, description="Invalid request missing required parameter secret_key")
 
 
 @app.route('/templates/<filename>', methods=['POST'])
@@ -182,22 +209,49 @@ def get_templates_list():
     return jsonify(files)
 
 
-@app.route('/templates/<file_id>')
-def download_template(file_id):
-    """Download the template by file_id.
-    parameters:
-      - name: file_id
-        in: path
-        schema:
-          type: integer
-        required: true"""
+@app.route('/templates/<file_id>', methods=['GET', 'DELETE'])
+def download_or_delete_template(file_id):
+    """Download or delete the template by file_id.
+      get:
+        parameters:
+          - name: file_id
+            in: path
+            schema:
+              type: integer
+            required: true
+      delete:
+        parameters:
+          - name: file_id
+            in: path
+            schema:
+              type: integer
+            required: true
+          - name: secret_key
+            in: query
+            schema:
+              type: string
+            required: true"""
     with DB(db_connection_string) as db:
         file_path = db.get_file_path_from_templates_table(file_id)
-    if not file_path:
-        app.logger.warning(f"404 Template with id {file_id} does not exist.")
-        abort(404, description=f"Template with id {file_id} does not exist.")
-    app.logger.info(f"200 File with id {file_id} was sent.")
-    return send_file(file_path)
+    if request.method == 'GET':
+        if not file_path:
+            app.logger.warning(f"404 Template with id {file_id} does not exist.")
+            abort(404, description=f"Template with id {file_id} does not exist.")
+        app.logger.info(f"200 File with id {file_id} was sent.")
+        return send_file(file_path)
+    if request.method == 'DELETE':
+        secret_key = request.args.get('secret_key', type=str)
+        if secret_key == os.getenv("DELETE_KEY"):
+            if not file_path:
+                app.logger.info(f"Template with id {file_id} is already deleted.")
+                return jsonify(message=f"Template with id {file_id} is already deleted."), 200
+            os.remove(file_path)
+            with DB(db_connection_string) as db:
+                db.delete_from_table('file_templates', file_id)
+            return jsonify(message=f"Template with id {file_id} was deleted."), 200
+        else:
+            app.logger.warning("400 Invalid request missing required parameter secret_key")
+            abort(400, description="Invalid request missing required parameter secret_key")
 
 
 @app.route('/client_files/<filename>', methods=['POST'])
@@ -267,23 +321,50 @@ def get_client_files_list():
     return jsonify(files)
 
 
-@app.route('/client_files/<file_id>')
-def download_client_file(file_id):
-    """Download the client file by file_id..
-    parameters:
-      - name: file_id
-        in: path
-        schema:
-          type: integer
-        required: true
-        description: client file ID."""
+@app.route('/client_files/<file_id>', methods=['GET', 'DELETE'])
+def download_or_delete_client_file(file_id):
+    """Download or delete the client file by file_id.
+      get:
+        parameters:
+          - name: file_id
+            in: path
+            schema:
+              type: integer
+            required: true
+            description: client file ID
+      delete:
+        parameters:
+          - name: file_id
+            in: path
+            schema:
+              type: integer
+            required: true
+          - name: secret_key
+            in: query
+            schema:
+              type: string
+            required: true"""
     with DB(db_connection_string) as db:
         file_path = db.get_file_path_from_client_files_table(file_id)
-    if not file_path:
-        app.logger.warning(f"404 File with id {file_id} does not exist.")
-        abort(404, description=f"Client file with id {file_id} does not exist.")
-    app.logger.info(f"200 File with id {file_id} was sent.")
-    return send_file(file_path)
+    if request.method == 'GET':
+        if not file_path:
+            app.logger.warning(f"404 File with id {file_id} does not exist.")
+            abort(404, description=f"Client file with id {file_id} does not exist.")
+        app.logger.info(f"200 Client file with id {file_id} was sent.")
+        return send_file(file_path)
+    if request.method == 'DELETE':
+        secret_key = request.args.get('secret_key', type=str)
+        if secret_key == os.getenv("DELETE_KEY"):
+            if not file_path:
+                app.logger.info(f"Client file with id {file_id} is already deleted.")
+                return jsonify(message=f"Client file with id {file_id} is already deleted."), 200
+            os.remove(file_path)
+            with DB(db_connection_string) as db:
+                db.delete_from_table('client_files', file_id)
+            return jsonify(message=f"Client file with id {file_id} was deleted."), 200
+        else:
+            app.logger.warning("400 Invalid request missing required parameter secret_key")
+            abort(400, description="Invalid request missing required parameter secret_key")
 
 
 # @app.route('/')
