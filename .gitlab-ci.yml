@@ -15,7 +15,7 @@ deploy:
     - ${TAG_NAME}
   script:
     - docker compose down
-    - docker rmi files_load_api-files_load_api
-    - docker rmi files_load_api-nginx
+    # - docker rmi files_load_api-files_load_api
+    # - docker rmi files_load_api-nginx
     - docker compose up -d
     
