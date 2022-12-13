@@ -13,8 +13,5 @@ RUN mkdir -p ~/.postgresql && \
     chmod 0600 ~/.postgresql/root.crt
 
 # Create db tables and files folders.
-RUN /usr/local/bin/python3 /app/postgres.py
-
-EXPOSE 5000
-
-CMD gunicorn -b 0.0.0.0:5000 --timeout 9999 --workers 8 flask_app:app --reload
+#RUN /usr/local/bin/python3 /app/postgres.py
+#CMD gunicorn -b 0.0.0.0:5000 --timeout 9999 --workers 8 flask_app:app --reload
