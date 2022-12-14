@@ -2,7 +2,7 @@ import os
 import logging
 import pandas as pd
 import requests
-from flask import Flask, request, abort, send_file, jsonify
+from flask import Flask, request, abort, send_file, jsonify, render_template
 from werkzeug.utils import secure_filename
 from postgres import DB, db_connection_string
 from pathlib import Path
@@ -60,6 +60,11 @@ def unique_file_path(path):
         path = filename + " (" + str(counter) + ")" + extension
         counter += 1
     return path
+
+
+@app.route('/docs')
+def get_docs():
+    return render_template('swaggerui.html')
 
 
 @app.route('/client_report_files/<filename>', methods=['POST'])
