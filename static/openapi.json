@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "http://62.84.124.35:5052"
+      "url": "http://apps1.ecomru.ru:5052"
     }
   ],
   "tags": [
@@ -170,7 +170,7 @@
         }
       }
     },
-    "/client_report_files": {
+    "/client_report_files/": {
       "get": {
         "tags": [
           "client_report_files"
@@ -320,7 +320,7 @@
         }
       }
     },
-    "/templates": {
+    "/templates/": {
       "get": {
         "tags": [
           "templates"
@@ -468,7 +468,7 @@
         }
       }
     },
-    "/client_files": {
+    "/client_files/": {
       "get": {
         "tags": [
           "client_files"
