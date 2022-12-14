@@ -1,17 +1,19 @@
 import os
 import logging
 import pandas as pd
-import re
 import requests
 from flask import Flask, request, abort, send_file, jsonify
 from werkzeug.utils import secure_filename
 from postgres import DB, db_connection_string
 from pathlib import Path
+from time import localtime, strftime
 
 FILES_FOLDER = './files_storage/client_report_files'
 TEMPLATES_FOLDER = './files_storage/file_templates'
 CLIENT_FILES_FOLDER = './files_storage/clients_files'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv'}
+ALLOWED_METHODS = {'/dashboard_sales_filter/client', '/dashboard_sales_filter/category',
+                   '/dashboard_sales_filter/brand', '/dashboard_sales_filter/products', }
 
 app = Flask(__name__)
 
@@ -147,6 +149,7 @@ def download_or_delete_client_report_file(file_id):
             abort(404, description=f"File with id {file_id} does not exist.")
         app.logger.info(f"200 File with id {file_id} was sent.")
         return send_file(file_path)
+
     if request.method == 'DELETE':
         secret_key = request.args.get('secret_key', type=str)
         if secret_key == os.getenv("DELETE_KEY"):
@@ -367,6 +370,76 @@ def download_or_delete_client_file(file_id):
             abort(400, description="Invalid request missing required parameter secret_key")
 
 
+@app.route('/report', methods=['POST'])
+def get_report():
+    """Return report for client.
+        parameters:
+          - name: method
+            in: query
+            schema:
+              type: string
+            required: true
+            example: "/dashboard_sales_filter/client"
+          - name: client_id
+            in: query
+            schema:
+              type: integer
+            required: true"""
+    client_id = request.args.get('client_id', type=int)
+    if client_id is None:
+        app.logger.warning("400 Invalid request missing required parameter client_id")
+        abort(400, description="Invalid request missing required parameter client_id")
+    method = request.args.get('method', type=str)
+    if method is None:
+        app.logger.warning("400 Invalid request missing required parameter method")
+        abort(400, description="Invalid request missing required parameter method")
+    if method not in ALLOWED_METHODS:
+        app.logger.warning(f"400 Method {method} is not allowed")
+        abort(400, description=f"400 Method {method} is not allowed. Allowed methods: {', '.join(ALLOWED_METHODS)}")
+
+    result = None
+    url = "https://apps1.ecomru.ru:4441/api/v1" + method
+    json_data = request.json
+    print(type(json_data))
+    print(json_data)
+    try:
+        response = requests.post(url, json=json_data)
+        if response.status_code in {400, 404, 422, 500}:
+            abort(response.status_code, description=repr(response.json()))
+        result = response.json()
+    except requests.exceptions.RequestException as e:
+        app.logger.warning(repr(e))
+        abort(404, description=repr(e))
+
+    print(result)
+    if type(result) is list:
+        df = pd.DataFrame.from_records(result)
+    elif type(result) is dict:
+        values = list(result.values())
+        if type(values[0]) is list:
+            df = pd.DataFrame.from_dict(result)
+        else:
+            df = pd.DataFrame.from_records([result])
+    else:
+        app.logger.error(f"Unable to convert result to dataframe; result type: {type(result)}.")
+        abort(500, description="Unable to convert result to dataframe.")
+
+    method_name = method[1:].replace('/', ' ')
+    filename = f"{method_name} {strftime('%d-%m-%y %H:%M', localtime())}.xlsx"
+    client_dir_path = os.path.join(FILES_FOLDER, str(client_id))
+    Path(client_dir_path).mkdir(parents=True, exist_ok=True)
+    file_path = os.path.join(client_dir_path, filename)
+    file_path = unique_file_path(file_path)
+    filename = os.path.basename(file_path)
+    file_group = method_name  # ????????????????????
+    df.to_excel(file_path)
+    with DB(db_connection_string) as db:
+        db.insert_file_info_into_client_report_files_table(filename, client_id, file_group, file_path)
+    app.logger.info(f"Client_id {client_id} - File: {filename} successfully saved.")
+    app.logger.info(f"200 Client_id {client_id} - File: {filename} was sent.")
+    return send_file(file_path)
+
+
 # @app.route('/')
 # def excel_to_json():
 #     df = pd.read_excel('example.xlsx', dtype=str, header=None)
@@ -377,22 +450,6 @@ def download_or_delete_client_file(file_id):
 #     values = df[0].tolist()
 #     result = {'vendor_code': values}
 #     return jsonify(result)
-#
-#
-# @app.route('/planets')
-# def get_planets_excel():
-#     url = "https://swapi.dev/api/planets/"
-#     df = pd.DataFrame()
-#     try:
-#         response = requests.get(url)
-#         results = response.json()['results']
-#         df = pd.json_normalize(results)
-#     except requests.exceptions.RequestException as e:
-#         app.logger.error(repr(e))
-#     if not df.empty:
-#         df.to_excel('planets.xlsx')
-#         return send_file('planets.xlsx')
-#     abort(404)
 
 
 if __name__ == '__main__':
