@@ -37,6 +37,16 @@ def resource_not_found(e):
     return jsonify(error=str(e)), 404
 
 
+@app.errorhandler(422)
+def validation_error(e):
+    return jsonify(error=str(e)), 422
+
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return jsonify(error=str(e)), 500
+
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
