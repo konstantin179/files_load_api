@@ -11,6 +11,9 @@
   ],
   "tags": [
     {
+      "name": "report"
+    },
+    {
       "name": "client_report_files",
       "description": "Operations with files for clients"
     },
@@ -24,6 +27,76 @@
     }
   ],
   "paths": {
+    "/report": {
+      "post": {
+        "tags": [
+          "report"
+        ],
+        "summary": "Return excel file with data from given method",
+        "description": "Create excel file with data from given method, save it, and send it back.",
+        "operationId": "postReport",
+        "parameters": [
+          {
+            "name": "method",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "example": "/dashboard_sales_filter/client",
+            "description": "Part of the path to required method after /api/v1"
+          },
+          {
+            "name": "client_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "description": "JSON that is needed to required method.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "some_key": {
+                    "type": "string",
+                    "example": "some value"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/client_report_files/{filename}": {
       "post": {
         "tags": [
