@@ -13,7 +13,11 @@ TEMPLATES_FOLDER = './files_storage/file_templates'
 CLIENT_FILES_FOLDER = './files_storage/clients_files'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv'}
 ALLOWED_METHODS = {'/dashboard_sales_filter/client', '/dashboard_sales_filter/category',
-                   '/dashboard_sales_filter/brand', '/dashboard_sales_filter/products', }
+                   '/dashboard_sales_filter/brand', '/dashboard_sales_filter/products',
+                   '/dashboard_sales_date/conversions_hits_tocart_to_ordered_units',
+                   '/dashboard_sales_date/dynamic_revenue',
+                   '/dashboard_sales_date/conversions_hits_view_to_ordered_units',
+                   '/dashboard_sales_date/conversions_hits_view_to_hits_tocart', }
 
 app = Flask(__name__)
 
