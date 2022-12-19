@@ -2,8 +2,10 @@ import os
 import logging
 import pandas as pd
 import requests
+import json
 from flask import Flask, request, abort, send_file, jsonify, render_template
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import HTTPException
 from postgres import DB, db_connection_string
 from pathlib import Path
 from time import localtime, strftime
@@ -31,24 +33,19 @@ app.logger.addHandler(fh)
 app.logger.setLevel(logging.INFO)
 
 
-@app.errorhandler(400)
-def bad_request(e):
-    return jsonify(error=str(e)), 400
-
-
-@app.errorhandler(404)
-def resource_not_found(e):
-    return jsonify(error=str(e)), 404
-
-
-@app.errorhandler(422)
-def validation_error(e):
-    return jsonify(error=str(e)), 422
-
-
-@app.errorhandler(500)
-def internal_server_error(e):
-    return jsonify(error=str(e)), 500
+@app.errorhandler(HTTPException)
+def handle_exception(e):
+    """Return JSON instead of HTML for HTTP errors."""
+    # start with the correct headers and status code from the error
+    response = e.get_response()
+    # replace the body with JSON
+    response.data = json.dumps({
+        "code": e.code,
+        "name": e.name,
+        "description": e.description,
+    })
+    response.content_type = "application/json"
+    return response
 
 
 def allowed_file(filename):
