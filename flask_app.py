@@ -15,12 +15,11 @@ FILES_FOLDER = './files_storage/client_report_files'
 TEMPLATES_FOLDER = './files_storage/file_templates'
 CLIENT_FILES_FOLDER = './files_storage/clients_files'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv'}
-ALLOWED_METHODS = {'/dashboard_sales_filter/client', '/dashboard_sales_filter/category',
-                   '/dashboard_sales_filter/brand', '/dashboard_sales_filter/products',
-                   '/dashboard_sales_date/conversions_hits_tocart_to_ordered_units',
-                   '/dashboard_sales_date/dynamic_revenue',
-                   '/dashboard_sales_date/conversions_hits_view_to_ordered_units',
-                   '/dashboard_sales_date/conversions_hits_view_to_hits_tocart', }
+ALLOWED_METHODS = {'/graphs/cart_to_order_conversion', '/graphs/costs_cpo', '/graphs/costs_cpm_cpo',
+                   '/graphs/impressions_to_cart_conversion', '/graphs/hits_view', '/graphs/org_traffic',
+                   '/graphs/average_check', '/graphs/ddr', '/graphs/adv_view_all', '/graphs/costs_cpm',
+                   '/graphs/full', '/graphs/impressions_to_order_conversion', '/graphs/share_of_paid_impressions',
+                   '/graphs/adv_view_all_org_traffic', '/graphs/ordered', '/graphs/revenue', '/graphs/adv_sum_all'}
 
 app = Flask(__name__)
 CORS(app)
