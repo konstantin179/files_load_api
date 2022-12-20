@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "http://apps1.ecomru.ru:5052"
+      "url": "https://apps1.ecomru.ru:4434"
     }
   ],
   "tags": [
