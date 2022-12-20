@@ -9,6 +9,7 @@ from werkzeug.exceptions import HTTPException
 from postgres import DB, db_connection_string
 from pathlib import Path
 from time import localtime, strftime
+from flask_cors import CORS
 
 FILES_FOLDER = './files_storage/client_report_files'
 TEMPLATES_FOLDER = './files_storage/file_templates'
@@ -22,6 +23,7 @@ ALLOWED_METHODS = {'/dashboard_sales_filter/client', '/dashboard_sales_filter/ca
                    '/dashboard_sales_date/conversions_hits_view_to_hits_tocart', }
 
 app = Flask(__name__)
+CORS(app)
 
 # Add file handler to app.logger
 fh = logging.FileHandler(filename='files_load_api.log')
