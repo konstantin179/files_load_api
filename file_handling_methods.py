@@ -27,13 +27,13 @@ def upload_prices(file_path, api_id, **kwargs):
     data = {"api_id": api_id,
             "offer_id": offer_ids,
             "price": prices}
-    # url = "https://apps0.ecomru.ru:4446/prices"
-    # try:
-    #     response = requests.post(url, json=data)
-    #     response.raise_for_status()
-    # except requests.exceptions.RequestException as e:
-    #     logger.warning(repr(e))
-    #     abort(502, description=repr(e))
+    url = "https://apps0.ecomru.ru:4446/prices"
+    try:
+        response = requests.post(url, json=data)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        logger.warning(repr(e))
+        abort(502, description=repr(e))
     filename = os.path.basename(file_path)
     return {"message": f"Client file: {filename} is successfully saved and prices are uploaded."}
 
@@ -58,13 +58,13 @@ def upload_min_margin(file_path, api_id, **kwargs):
     data = {"api_id": api_id,
             "offer_id": offer_ids,
             "min_margin": margin}
-    # url = "https://apps0.ecomru.ru:4446/margins"
-    # try:
-    #     response = requests.post(url, json=data)
-    #     response.raise_for_status()
-    # except requests.exceptions.RequestException as e:
-    #     logger.warning(repr(e))
-    #     abort(502, description=repr(e))
+    url = "https://apps0.ecomru.ru:4446/margins"
+    try:
+        response = requests.post(url, json=data)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        logger.warning(repr(e))
+        abort(502, description=repr(e))
     filename = os.path.basename(file_path)
     return {"message": f"Client file: {filename} is successfully saved and min margin are uploaded."}
 
@@ -119,21 +119,22 @@ def upload_offers_mapping_table(file_path, client_id, **kwargs):
     mappings = df.to_dict('list')
     data = {'client_id': client_id,
             'mappings': mappings}
-    # url = "https://apps0.ecomru.ru:4446/mappings"
-    # try:
-    #     response = requests.post(url, json=data)
-    #     response.raise_for_status()
-    # except requests.exceptions.RequestException as e:
-    #     logger.warning(repr(e))
-    #     abort(502, description=repr(e))
+    url = "https://apps0.ecomru.ru:4446/mappings"
+    try:
+        response = requests.post(url, json=data)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        logger.warning(repr(e))
+        abort(502, description=repr(e))
     filename = os.path.basename(file_path)
     return {"message": f"Client file: {filename} is successfully saved and offers mapping table are uploaded."}
 
 
 if __name__ == "__main__":
+    pass
     # upload_ya_impressions_and_sales("impressions.xlsx")
     # upload_yandex_sales_boost("boost.xlsx")
     # print(upload_prices('price.xlsx', 1))
     # print(upload_min_margin('margin.xlsx', 1))
-    print(upload_offers_mapping_table('price.xlsx', 1))
+    # print(upload_offers_mapping_table('price.xlsx', 1))
 
