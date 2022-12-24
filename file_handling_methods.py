@@ -3,8 +3,11 @@ import pandas as pd
 import requests
 import my_logger
 from flask import abort
+from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError
+from postgres import sqlalch_db_conn_str, connection_args, psql_insert_copy, DB, db_connection_string
 
-logger = my_logger.init_logger()
+logger = my_logger.init_logger("file_handling_methods")
 
 
 def upload_prices(file_path, api_id, **kwargs):
@@ -69,7 +72,7 @@ def upload_min_margin(file_path, api_id, **kwargs):
     return {"message": f"Client file: {filename} is successfully saved and min margin are uploaded."}
 
 
-def upload_ya_impressions_and_sales(file_path, **kwargs):
+def upload_ya_impressions_and_sales(file_path, api_id, **kwargs):
     if os.path.splitext(file_path)[1] == '.csv':
         df = pd.read_csv(file_path)
     else:  # .xlsx or .xls
@@ -83,10 +86,28 @@ def upload_ya_impressions_and_sales(file_path, **kwargs):
     if not (list(df.columns) == expected_headers):
         logger.warning("400 Bad file structure")
         abort(400, description="Bad file structure.")
-    print(df.head())
+
+    new_headers = {'Ваш SKU': 'sku_id', 'Название товара': 'sku_name', 'День': 'date',
+                   'ID категории': 'category_id', 'Категория': 'category_name',
+                   'ID бренда': 'brand_id', 'Бренд': 'brand_name',
+                   'Показы': 'session_view', 'Добавлено в корзину, шт.': 'hits_tocart',
+                   'Конверсия добавления в корзину, %': 'conv_tocart', 'Продажи, шт.': 'delivered_units',
+                   'Продажи, руб.': 'revenue', 'ID округа': 'region_id', 'Федеральный округ': 'region_name'}
+    headers_list = list(new_headers.keys())
+    df = df[headers_list]
+    df.rename(columns=new_headers, inplace=True)
+    df['api_id'] = api_id
+    try:
+        engine = create_engine(sqlalch_db_conn_str, connect_args=connection_args)
+        df.to_sql('data_analytics_bydays_main', engine, if_exists='append', method=psql_insert_copy, index=False)
+        logger.info(f"Yandex impressions and sales data for api_id {api_id} saved in db.")
+    except (Exception, SQLAlchemyError) as e:
+        logger.error(repr(e))
+    with DB(db_connection_string) as db:
+        db.delete_duplicates_from_data_analytics_bydays_main_table()
 
 
-def upload_yandex_sales_boost(file_path, **kwargs):
+def upload_yandex_sales_boost(file_path, api_id, **kwargs):
     if os.path.splitext(file_path)[1] == '.csv':
         df = pd.read_csv(file_path)
     else:  # .xlsx or .xls
@@ -105,7 +126,18 @@ def upload_yandex_sales_boost(file_path, **kwargs):
         abort(400, description="Bad file structure.")
     print(df.head())
     # Delete last row
-    # df = df.iloc[:-1]
+    df = df.iloc[:-1]
+    new_headers = {'Ваш SKU': 'sku_id', 'Наименование предложения': 'sku_name', 'День': 'date',
+                   'Клики по товарам со ставками, шт.': 'hits_view_search', 'Все клики, шт.': 'hits_view',
+                   'Продано всего, шт': 'delivered_units', 'Продано всего, рубли': 'revenue',
+                   'Всего заказано товаров, шт.': 'ordered_units', 'Расход на продвижение, рубли': 'adv_sum_all',
+                   'Заказано товаров со ставками, шт.': '', 'Продано с помощью продвижения, рубли': '',
+                   'Продано с помощью продвижения, шт': '',
+                   'ID округа': 'region_id', 'Федеральный округ': 'region_name'}
+    headers_list = list(new_headers.keys())
+    df = df[headers_list]
+    df.rename(columns=new_headers, inplace=True)
+    df['api_id'] = api_id
 
 
 def upload_offers_mapping_table(file_path, client_id, **kwargs):
@@ -132,9 +164,8 @@ def upload_offers_mapping_table(file_path, client_id, **kwargs):
 
 if __name__ == "__main__":
     pass
-    # upload_ya_impressions_and_sales("impressions.xlsx")
+    # upload_ya_impressions_and_sales("impressions.xlsx", 1)
     # upload_yandex_sales_boost("boost.xlsx")
     # print(upload_prices('price.xlsx', 1))
     # print(upload_min_margin('margin.xlsx', 1))
     # print(upload_offers_mapping_table('price.xlsx', 1))
-

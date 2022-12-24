@@ -1,8 +1,8 @@
 import logging
 
 
-def init_logger():
-    logger = logging.getLogger(__name__)
+def init_logger(name):
+    logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     # create file and stream handlers and set level to debug
     fh = logging.FileHandler(filename='files_load_api.log')
@@ -17,4 +17,5 @@ def init_logger():
     # add fh and sh to logger
     logger.addHandler(fh)
     logger.addHandler(sh)
+    logger.propagate = False
     return logger
