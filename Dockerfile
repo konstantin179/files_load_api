@@ -2,7 +2,7 @@ FROM python:3.9
 
 WORKDIR ./app
 COPY . .
-
+RUN chmod 775 script.sh
 RUN pip install --upgrade pip && pip install --no-cache-dir --upgrade -r requirements.txt
 
 # Download db certificate
@@ -13,8 +13,5 @@ RUN mkdir -p ~/.postgresql && \
     chmod 0600 ~/.postgresql/root.crt
 
 # Create db tables and files folders.
-RUN python3 postgres.py
-
-EXPOSE 5000
-
-CMD gunicorn -b 0.0.0.0:5000 --timeout 9999 --workers 8 flask_app:app --reload
+#RUN /usr/local/bin/python3 /app/postgres.py
+#CMD gunicorn -b 0.0.0.0:5000 --timeout 9999 --workers 8 flask_app:app --reload
