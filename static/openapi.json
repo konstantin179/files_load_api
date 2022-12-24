@@ -113,7 +113,7 @@
               "type": "string"
             },
             "required": true,
-            "description": "Filename with available file extensions: 'xlsx', 'xls', 'csv', 'txt'."
+            "description": "Filename with available file extensions: 'xlsx', 'xls', 'csv'."
           },
           {
             "name": "client_id",
@@ -271,7 +271,7 @@
               "type": "string"
             },
             "required": true,
-            "description": "Filename with available file extensions: 'xlsx', 'xls', 'csv', 'txt'."
+            "description": "Filename with available file extensions: 'xlsx', 'xls', 'csv'."
           },
           {
             "name": "file_group",
@@ -401,7 +401,7 @@
           "client_files"
         ],
         "summary": "Add a new client file to the client_files folder",
-        "description": "Add a new client file to the client_files folder. You need to put the binary string with the file in the request body.",
+        "description": "Add a new client file to the client_files folder. You need to put the binary string with the file in the request body. To send data from a file to some method, you need to pass the name of this method to file_group parameter.",
         "operationId": "postFileToClientFiles",
         "parameters": [
           {
@@ -411,7 +411,7 @@
               "type": "string"
             },
             "required": true,
-            "description": "Filename with available file extensions: 'xlsx', 'xls', 'csv', 'txt'."
+            "description": "Filename with available file extensions: 'xlsx', 'xls', 'csv'."
           },
           {
             "name": "client_id",
@@ -430,6 +430,15 @@
             },
             "required": false,
             "description": "Name of file group"
+          },
+          {
+            "name": "api_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "required": false,
+            "description": "api_id for which the client wants to upload data"
           }
         ],
         "requestBody": {
@@ -522,6 +531,49 @@
           {
             "name": "file_id",
             "in": "path",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/client_template/offers_mapping_table": {
+      "get": {
+        "tags": [
+          "client_template"
+        ],
+        "summary": "Download template offers_mapping_table file for client",
+        "description": "Download template offers_mapping_table file for client.",
+        "operationId": "downloadClientTemplateMapping",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
             "schema": {
               "type": "integer"
             },

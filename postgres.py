@@ -2,7 +2,7 @@ import psycopg2
 import psycopg2.extras
 import traceback
 import os
-import logging
+import my_logger
 from pathlib import Path
 
 
@@ -15,21 +15,7 @@ db_connection_string = f"""host={os.getenv('PG_HOST')}
         target_session_attrs={os.getenv('TARGET_SESSION_ATTRS')}"""
 
 # create logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-# create file and stream handlers and set level to debug
-fh = logging.FileHandler(filename='files_load_api.log')
-sh = logging.StreamHandler()
-fh.setLevel(logging.DEBUG)
-sh.setLevel(logging.DEBUG)
-# create formatter
-formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(module)s - %(funcName)s - %(message)s')
-# add formatter to fh and sh
-fh.setFormatter(formatter)
-sh.setFormatter(formatter)
-# add fh and sh to logger
-logger.addHandler(fh)
-logger.addHandler(sh)
+logger = my_logger.init_logger()
 
 
 class DB:
@@ -214,6 +200,22 @@ class DB:
             cursor.close()
         except (Exception, psycopg2.Error) as error:
             logger.error(repr(error))
+
+    def get_client_store_names(self, client_id):
+        """Returns list of client store names from account_list table."""
+        names = []
+        try:
+            cursor = self.connection.cursor()
+            query = f"""SELECT name
+                          FROM account_list
+                         WHERE client_id = {client_id} AND status_1 = "Active";"""
+            cursor.execute(query)
+            for row in cursor.fetchall():
+                names.append(row[0])
+            cursor.close()
+        except (Exception, psycopg2.Error) as error:
+            logger.error(repr(error))
+        return names
 
     def close(self):
         if self.connection:

@@ -3,7 +3,8 @@ import logging
 import pandas as pd
 import requests
 import json
-from flask import Flask, request, abort, send_file, jsonify, render_template
+import file_handling_methods
+from flask import Flask, request, abort, send_file, jsonify, render_template, url_for
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import HTTPException
 from postgres import DB, db_connection_string
@@ -20,6 +21,10 @@ ALLOWED_METHODS = {'/graphs/cart_to_order_conversion', '/graphs/costs_cpo', '/gr
                    '/graphs/average_check', '/graphs/ddr', '/graphs/adv_view_all', '/graphs/costs_cpm',
                    '/graphs/full', '/graphs/impressions_to_order_conversion', '/graphs/share_of_paid_impressions',
                    '/graphs/adv_view_all_org_traffic', '/graphs/ordered', '/graphs/revenue', '/graphs/adv_sum_all'}
+FILE_GROUP_METHODS = {'price': 'upload_prices', 'margin': 'upload_min_margin',
+                      'yandex_impressions_and_sales': 'upload_ya_impressions_and_sales',
+                      'yandex_sales_boost': 'upload_yandex_sales_boost',
+                      'offers_mapping_table': 'upload_offers_mapping_table'}
 
 app = Flask(__name__)
 CORS(app)
@@ -67,6 +72,22 @@ def unique_file_path(path):
 @app.route('/docs')
 def get_docs():
     return render_template('swaggerui.html')
+
+
+# @app.route('/file/download')
+# def download_file():
+#     file_path = "./files_storage/file_templates/price.xlsx"
+#     file_path = request.args.get('file_path', type=str)
+#     print(file_path)
+#     if not os.path.isfile(file_path):
+#         abort(404, "File does not exist.")
+#     return send_file(file_path, as_attachment=True)
+#
+#
+# @app.route('/file')
+# def get_file():
+#     file_path = "./files_storage/file_templates/price.xlsx"
+#     return url_for('download_file', _external=True, file_path=file_path)
 
 
 @app.route('/client_report_files/<filename>', methods=['POST'])
@@ -295,12 +316,19 @@ def upload_client_file(filename):
           type: string
           default: "Прочее"
         required: false
-        description: Name of file group"""
+        description: Name of file group
+      - name: api_id
+        in: query
+        schema:
+          type: integer
+        required: false
+        description: api_id for which the client wants to upload data"""
     client_id = request.args.get('client_id', type=int)
     if client_id is None:
         app.logger.warning("400 Invalid request missing required parameter client_id")
         abort(400, description="Invalid request missing required parameter client_id")
     file_group = request.args.get('file_group', default="Прочее", type=str)
+    api_id = request.args.get('api_id', type=int)
     # Check if the post request has the file data
     if not request.data:
         app.logger.warning("400 No data was sent.")
@@ -318,8 +346,13 @@ def upload_client_file(filename):
         f.write(request.data)
     with DB(db_connection_string) as db:
         db.insert_file_info_into_client_files_table(filename, client_id, file_group, file_path)
-    app.logger.info(f"201 Client_id {client_id} - Client file: {filename} successfully saved.")
-    return jsonify(message=f"Client file: {filename} successfully saved."), 201
+    result = {"message": f"Client file: {filename} successfully saved."}
+    if file_group in FILE_GROUP_METHODS:
+        method_name = FILE_GROUP_METHODS[file_group]
+        method = getattr(file_handling_methods, method_name)
+        result = method(file_path, client_id=client_id, api_id=api_id)
+    app.logger.info(f"201 Client_id {client_id} - " + result['message'])
+    return jsonify(result), 201
 
 
 @app.route("/client_files/")
@@ -442,7 +475,7 @@ def get_report():
         abort(500, description="Unable to convert result to dataframe.")
 
     method_name = method[1:].replace('/', ' ')
-    filename = f"{method_name} {strftime('%d-%m-%y %H:%M', localtime())}.xlsx"
+    filename = f"{method_name} {strftime('%d-%m-%y %H-%M', localtime())}.xlsx"
     client_dir_path = os.path.join(FILES_FOLDER, str(client_id))
     Path(client_dir_path).mkdir(parents=True, exist_ok=True)
     file_path = os.path.join(client_dir_path, filename)
@@ -457,16 +490,40 @@ def get_report():
     return send_file(file_path)
 
 
-# @app.route('/')
-# def excel_to_json():
-#     df = pd.read_excel('example.xlsx', dtype=str, header=None)
-#     first_value = df.iat[0, 0]
-#     if (re.match(r"артикул*", first_value, re.IGNORECASE) or
-#             re.match(r"artic*", first_value, re.IGNORECASE)):
-#         df.drop(df.index[0], inplace=True)
-#     values = df[0].tolist()
-#     result = {'vendor_code': values}
-#     return jsonify(result)
+@app.route('/client_template/offers_mapping_table', methods=['GET'])
+def get_offers_mapping_table():
+    """Return template offers_mapping_table file for client.
+        parameters:
+          - name: client_id
+            in: query
+            schema:
+              type: integer
+            required: true"""
+    client_id = request.args.get('client_id', type=int)
+    if client_id is None:
+        app.logger.warning("400 Invalid request missing required parameter client_id")
+        abort(400, description="Invalid request missing required parameter client_id")
+
+    with DB(db_connection_string) as db:
+        headers = db.get_client_store_names(client_id)
+    if not headers:
+        app.logger.warning(f"404 Client {client_id} has no stores.")
+        abort(404, description=f"404 Client {client_id} has no stores.")
+    df = pd.DataFrame(columns=headers)
+
+    filename = f"Template offers mapping table {strftime('%d-%m-%y', localtime())}.xlsx"
+    client_dir_path = os.path.join(FILES_FOLDER, str(client_id))
+    Path(client_dir_path).mkdir(parents=True, exist_ok=True)
+    file_path = os.path.join(client_dir_path, filename)
+    file_path = unique_file_path(file_path)
+    filename = os.path.basename(file_path)
+    file_group = "template"
+    df.to_excel(file_path, index=False)
+    with DB(db_connection_string) as db:
+        db.insert_file_info_into_client_report_files_table(filename, client_id, file_group, file_path)
+    app.logger.info(f"Client_id {client_id} - File: {filename} successfully saved.")
+    app.logger.info(f"200 Client_id {client_id} - File: {filename} was sent.")
+    return send_file(file_path)
 
 
 if __name__ == '__main__':
