@@ -33,4 +33,5 @@ services:
     ports:
       - 8083:80
       - 4434:443
-      - 5052:5000
+    volumes:
+      - /home/get/cert:/app/cert
