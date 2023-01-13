@@ -448,7 +448,7 @@ def get_report():
         abort(400, description=f"400 Method {method} is not allowed. Allowed methods: {', '.join(ALLOWED_METHODS)}")
 
     result = None
-    url = "https://apps1.ecomru.ru:4450/api/v1" + method
+    url = "https://" + method
     json_data = request.json
     print(type(json_data))
     print(json_data)
