@@ -30,7 +30,7 @@ def upload_prices(file_path, api_id, **kwargs):
     data = {"api_id": api_id,
             "offer_id": offer_ids,
             "price": prices}
-    url = "https://apps0.ecomru.ru:4446/prices"
+    url = ""
     try:
         response = requests.post(url, json=data)
         response.raise_for_status()
@@ -61,7 +61,7 @@ def upload_min_margin(file_path, api_id, **kwargs):
     data = {"api_id": api_id,
             "offer_id": offer_ids,
             "min_margin": margin}
-    url = "https://apps0.ecomru.ru:4446/margins"
+    url = ""
     try:
         response = requests.post(url, json=data)
         response.raise_for_status()
@@ -151,7 +151,7 @@ def upload_offers_mapping_table(file_path, client_id, **kwargs):
     mappings = df.to_dict('list')
     data = {'client_id': client_id,
             'mappings': mappings}
-    url = "https://apps0.ecomru.ru:4446/mappings"
+    url = ""
     try:
         response = requests.post(url, json=data)
         response.raise_for_status()
